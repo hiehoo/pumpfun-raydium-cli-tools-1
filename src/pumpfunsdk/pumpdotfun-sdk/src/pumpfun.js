@@ -475,19 +475,64 @@ const MPL_TOKEN_METADATA_PROGRAM_ID =
 
   async createTokenMetadata(create) {
     let formData = new FormData();
-    formData.append("file", create.file),
-      formData.append("name", create.name),
-      formData.append("symbol", create.symbol),
-      formData.append("description", create.description),
-      formData.append("twitter", create.twitter || ""),
-      formData.append("telegram", create.telegram || ""),
-      formData.append("website", create.website || ""),
-      formData.append("showName", "true");
-    let request = await fetch("https://pump.fun/api/ipfs", {
-      method: "POST",
-      body: formData,
-    });
-    return request.json();
+    
+    // Handle file upload if provided
+    if (create.file) {
+      formData.append("file", create.file);
+    }
+
+    // Required fields
+    formData.append("name", create.name);
+    formData.append("symbol", create.symbol);
+    formData.append("description", create.description || "");
+
+    // Optional fields with defaults
+    formData.append("twitter", create.twitter || "");
+    formData.append("telegram", create.telegram || "");
+    formData.append("website", create.website || "");
+    formData.append("showName", "true");
+
+    try {
+      const request = await fetch("https://pump.fun/api/ipfs", {
+        method: "POST",
+        headers: {
+          'Accept': 'application/json',
+          // Let the FormData set its own Content-Type with boundary
+        },
+        body: formData,
+      });
+
+      if (!request.ok) {
+        const errorText = await request.text();
+        console.error('Failed metadata upload response:', errorText);
+        throw new Error(`Failed to create token metadata: ${request.status} ${request.statusText}\n${errorText}`);
+      }
+
+      const contentType = request.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await request.text();
+        console.error('Unexpected content type:', contentType);
+        console.error('Response:', text);
+        throw new Error(`Expected JSON response but got ${contentType}: ${text}`);
+      }
+
+      const response = await request.json();
+      
+      // Log the response for debugging
+      console.log('Metadata upload response:', JSON.stringify(response, null, 2));
+
+      if (!response.metadataUri) {
+        throw new Error(`Invalid response from server: missing metadataUri\n${JSON.stringify(response, null, 2)}`);
+      }
+
+      return response;
+    } catch (error) {
+      console.error('Metadata creation error:', error);
+      if (error instanceof SyntaxError) {
+        throw new Error(`Invalid JSON response from server: ${error.message}`);
+      }
+      throw error;
+    }
   }
   //EVENTS
   addEventListener(

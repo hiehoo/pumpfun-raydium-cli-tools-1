@@ -1,0 +1,50 @@
+# Development files
+.git
+.gitignore
+.env
+.env.*
+*.log
+.DS_Store
+
+# Test files
+test/
+tests/
+__tests__/
+coverage/
+
+# Documentation
+docs/
+examples/
+*.md
+!README.md
+
+# Source control
+.github/
+.gitlab/
+.circleci/
+
+# IDE files
+.idea/
+.vscode/
+*.sublime-*
+*.swp
+*.swo
+
+# Build files
+dist/
+build/
+*.tgz
+
+# Dependency directories
+node_modules/
+
+# Debug files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp 

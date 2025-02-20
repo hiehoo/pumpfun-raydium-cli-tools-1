@@ -19,39 +19,38 @@ const envPath = path.join(__dirname, ".env");
 dotenv.config({
   path: envPath, // fill in your .env path
 });
-function loadKeypairFromFile(filename) {
-  const secret = fs.readFileSync(filename, { encoding: "utf8" });
-  return Keypair.fromSecretKey(Uint8Array.from(JSON.parse(secret)));
+
+// Default values for required environment variables
+const DEFAULT_ENV = {
+  JITO_FEE: "0.00001",
+  MAINNET_ENDPOINT: "https://api.mainnet-beta.solana.com",
+  DEVNET_ENDPOINT: "https://api.devnet.solana.com",
+  SHYFT_API_KEY: "",
+};
+
+// Helper function to get environment variable with fallback
+function getEnvVar(name) {
+  return process.env[name] || DEFAULT_ENV[name];
 }
-const jito_fee = process.env.JITO_FEE; // 0.00009 SOL
-const shyft_api_key = process.env.SHYFT_API_KEY; // your shyft api key
-const wallet = Keypair.fromSecretKey(bs58.decode(process.env.PRIVATE_KEY)); // your wallet
-const dev_endpoint = process.env.DEVNET_ENDPOINT; // devnet endpoint, if you use devnet
-const main_endpoint = process.env.MAINNET_ENDPOINT; // mainnet endpoint
-// const second_main_endpoint = process.env.SECOND_MAINNET_ENDPOINT; // if you use copy trade program, second mainnet endpoint
-// const RPC_Websocket_endpoint = process.env.WS_ENDPOINT;
-// const second_RPC_Websocket_endpoint = process.env.SECOND_WS_ENDPOINT; // if you use copy trade program
-// const stop_lost = process.env.STOP_LOST; // percentage of stop lost, if you use copy trade program
-// const take_profit = process.env.TAKE_PROFIT; // percentage of take profit, if you use copy trade program
-// const smart_money_wallet = process.env.SMART_MONEY_WALLET; // if you use copy trade program
-const connection = new Connection(main_endpoint, "confirmed"); // mainnet connection
-//const connection = new Connection(main_endpoint, { // if you use copy trade program
-//  wsEndpoint: RPC_Websocket_endpoint,
-//  commitment: "confirmed",
-//});
-//const second_connection = new Connection(second_main_endpoint, { // if you use copy trade program
-//  wsEndpoint: second_RPC_Websocket_endpoint,
-//  commitment: "confirmed",
-//});
-const dev_connection = new Connection(dev_endpoint, "confirmed"); // devnet connection
 
-const PROGRAMIDS = MAINNET_PROGRAM_ID; // raydium mainnet program address
+const jito_fee = getEnvVar("JITO_FEE");
+const shyft_api_key = getEnvVar("SHYFT_API_KEY");
+const main_endpoint = getEnvVar("MAINNET_ENDPOINT");
+const dev_endpoint = getEnvVar("DEVNET_ENDPOINT");
 
-const RAYDIUM_MAINNET_API = RAYDIUM_MAINNET; // raydium mainnet program's api
+// Create a dummy wallet if PRIVATE_KEY is not provided
+const wallet = process.env.PRIVATE_KEY ? 
+  Keypair.fromSecretKey(bs58.decode(process.env.PRIVATE_KEY)) : 
+  Keypair.generate();
 
-const makeTxVersion = TxVersion.V0; // LEGACY
-const _ENDPOINT = ENDPOINT; // raydium mainnet program's base api path
-const addLookupTableInfo = LOOKUP_TABLE_CACHE; // only mainnet. other = undefined
+const connection = new Connection(main_endpoint, "confirmed");
+const dev_connection = new Connection(dev_endpoint, "confirmed");
+
+const PROGRAMIDS = MAINNET_PROGRAM_ID;
+const RAYDIUM_MAINNET_API = RAYDIUM_MAINNET;
+const makeTxVersion = TxVersion.V0;
+const _ENDPOINT = ENDPOINT;
+const addLookupTableInfo = LOOKUP_TABLE_CACHE;
 
 const DEFAULT_TOKEN = {
   SOL: new Currency(9, "SOL", "SOL"),
